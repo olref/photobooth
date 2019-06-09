@@ -79,31 +79,54 @@ class Welcome(QtWidgets.QFrame):
 
 class IdleMessage(QtWidgets.QFrame):
 
-    def __init__(self, trigger_action):
+    def __init__(self, one_mode, trigger_action, trigger_one_action):
 
         super().__init__()
         self.setObjectName('IdleMessage')
+        self._one_mode = one_mode
+
+        # change name to change stylesheet
+        if one_mode:
+            self.setObjectName('IdleMessageOne')
 
         self._message_label = _('Hit the')
         self._message_button = _('Button!')
 
-        self.initFrame(trigger_action)
+        self._one_mode_label = _('Choose your photo style !')
 
-    def initFrame(self, trigger_action):
+        self._one_photo_button = _('One picture')
+        self._multi_photo_button = _('Multi pictures')
+
+        self.initFrame(trigger_action, trigger_one_action)
+
+    def initFrame(self, trigger_action, trigger_one_action):
 
         lbl = QtWidgets.QLabel(self._message_label)
         btn = QtWidgets.QPushButton(self._message_button)
         btn.clicked.connect(trigger_action)
 
+        one_lbl = QtWidgets.QLabel(self._one_mode_label)
+        one_btn = QtWidgets.QPushButton(self._one_photo_button)
+        one_btn.clicked.connect(trigger_one_action)
+        multi_btn = QtWidgets.QPushButton(self._multi_photo_button)
+        multi_btn.clicked.connect(trigger_action)
+
         lay = QtWidgets.QVBoxLayout()
-        lay.addWidget(lbl)
-        lay.addWidget(btn)
+
+        if self._one_mode:
+            lay.addWidget(one_lbl)
+            lay.addWidget(one_btn)
+            lay.addWidget(multi_btn)
+        else:
+            lay.addWidget(lbl)
+            lay.addWidget(btn)
+
         self.setLayout(lay)
 
 
 class GreeterMessage(QtWidgets.QFrame):
 
-    def __init__(self, num_x, num_y, skip, countdown_action):
+    def __init__(self, num_x, num_y, skip, countdown_action, mode="multi"):
 
         super().__init__()
         self.setObjectName('GreeterMessage')
@@ -112,7 +135,7 @@ class GreeterMessage(QtWidgets.QFrame):
         self._text_button = _('Start countdown')
 
         num_pictures = max(num_x * num_y - len(skip), 1)
-        if num_pictures > 1:
+        if num_pictures > 1 and mode != "one":
             self._text_label = _('for {} pictures...').format(num_pictures)
         else:
             self._text_label = ''
@@ -138,13 +161,13 @@ class GreeterMessage(QtWidgets.QFrame):
 
 class CaptureMessage(QtWidgets.QFrame):
 
-    def __init__(self, num_picture, num_x, num_y, skip):
+    def __init__(self, num_picture, num_x, num_y, skip, mode="multi"):
 
         super().__init__()
         self.setObjectName('PoseMessage')
 
         num_pictures = max(num_x * num_y - len(skip), 1)
-        if num_pictures > 1:
+        if num_pictures > 1 and mode != 'one':
             self._text = _('Picture {} of {}...').format(num_picture,
                                                          num_pictures)
         else:
@@ -678,6 +701,10 @@ class Settings(QtWidgets.QFrame):
         bg = QtWidgets.QLineEdit(self._cfg.get('Picture', 'background'))
         self.add('Picture', 'background', bg)
 
+        enableOneMode = QtWidgets.QCheckBox()
+        enableOneMode.setChecked(self._cfg.getBool('Picture', 'one_mode'))
+        self.add('Picture', 'one_mode', enableOneMode)
+
         lay_num = QtWidgets.QHBoxLayout()
         lay_num.addWidget(num_x)
         lay_num.addWidget(QtWidgets.QLabel('x'))
@@ -711,6 +738,7 @@ class Settings(QtWidgets.QFrame):
         layout.addRow(_('Min. distance between shots [px]:'), lay_dist)
         layout.addRow(_('Skip pictures:'), skip)
         layout.addRow(_('Background image:'), lay_file)
+        layout.addRow(_('One photo mode:'), enableOneMode)
 
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)

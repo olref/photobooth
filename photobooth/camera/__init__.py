@@ -106,7 +106,7 @@ class Camera:
         elif isinstance(state, StateMachine.CaptureState):
             self.capturePicture(state)
         elif isinstance(state, StateMachine.AssembleState):
-            self.assemblePicture()
+            self.assemblePicture(state.mode)
         elif isinstance(state, StateMachine.TeardownState):
             self.teardown(state)
 
@@ -153,22 +153,28 @@ class Camera:
             self._comm.send(Workers.WORKER,
                             StateMachine.CameraEvent('capture', byte_data))
 
-        if state.num_picture < self._pic_dims.totalNumPictures:
+        if (state.num_picture < self._pic_dims.totalNumPictures) and state.mode != 'one':
             self._comm.send(Workers.MASTER,
                             StateMachine.CameraEvent('countdown'))
         else:
             self._comm.send(Workers.MASTER,
                             StateMachine.CameraEvent('assemble'))
 
-    def assemblePicture(self):
+    def assemblePicture(self, mode="multi"):
 
         self.setIdle()
 
         picture = self._template.copy()
-        for i in range(self._pic_dims.totalNumPictures):
-            shot = Image.open(self._pictures[i])
-            resized = shot.resize(self._pic_dims.thumbnailSize)
-            picture.paste(resized, self._pic_dims.thumbnailOffset[i])
+
+        if mode == "one":
+            shot = Image.open(self._pictures[0])
+            resized = shot.resize(self._pic_dims._output_size)
+            picture.paste(resized, (0, 0)) 
+        else:
+            for i in range(self._pic_dims.totalNumPictures):
+                shot = Image.open(self._pictures[i])
+                resized = shot.resize(self._pic_dims.thumbnailSize)
+                picture.paste(resized, self._pic_dims.thumbnailOffset[i])
 
         byte_data = BytesIO()
         picture.save(byte_data, format='jpeg')

@@ -51,6 +51,24 @@ QFrame#IdleMessage QPushButton:pressed {
     color: #eeeeee;
 }
 
+/* Idle Screen One mode enabled */
+
+QFrame#IdleMessageOne QLabel {
+    font-size: 80px;
+    qproperty-alignment: AlignCenter;
+}
+
+QFrame#IdleMessageOne QPushButton {
+    color: rgba(255, 27, 0, 200);
+    font-size: 80px;
+    text-align: center;
+}
+
+QFrame#IdleMessageOne QPushButton:pressed {
+    background-color: rgba(255, 27, 0, 200);
+    color: #eeeeee;
+}
+
 /* Greeter Screen */
 
 QFrame#GreeterMessage {

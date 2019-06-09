@@ -169,8 +169,13 @@ class PyQt5Gui(GuiSkeleton):
 
         self._enableEscape()
         self._enableTrigger()
-        self._setWidget(Frames.IdleMessage(
-            lambda: self._comm.send(Workers.MASTER, GuiEvent('trigger'))))
+        self._setWidget(
+            Frames.IdleMessage(
+                self._cfg.getBool('Picture', 'one_mode'),
+                lambda: self._comm.send(Workers.MASTER, GuiEvent('trigger')), 
+                lambda: self._comm.send(Workers.MASTER, GuiEvent('trigger_one'))
+            )
+        )
 
     def showGreeter(self, state):
 
@@ -183,9 +188,16 @@ class PyQt5Gui(GuiSkeleton):
                 if 1 <= i and i <= num_pic[0] * num_pic[1]]
         greeter_time = self._cfg.getInt('Photobooth', 'greeter_time') * 1000
 
-        self._setWidget(Frames.GreeterMessage(
-            *num_pic, skip,
-            lambda: self._comm.send(Workers.MASTER, GuiEvent('countdown'))))
+        self._setWidget(
+            Frames.GreeterMessage(
+                *num_pic,
+                skip,
+                lambda: self._comm.send(
+                    Workers.MASTER, GuiEvent('countdown')
+                ),
+                mode=state.mode
+            )
+        )
         QtCore.QTimer.singleShot(
             greeter_time,
             lambda: self._comm.send(Workers.MASTER, GuiEvent('countdown')))
@@ -210,7 +222,7 @@ class PyQt5Gui(GuiSkeleton):
         skip = [i for i in self._cfg.getIntList('Picture', 'skip')
                 if 1 <= i and i <= num_pic[0] * num_pic[1]]
         self._setWidget(Frames.CaptureMessage(state.num_picture, *num_pic,
-                                              skip))
+                                              skip, mode=state.mode))
 
     def showAssemble(self, state):
 
